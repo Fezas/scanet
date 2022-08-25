@@ -1,4 +1,4 @@
-package com.example.scanet;
+package ru.fezas.scanet;
 
 import javafx.application.Application;
 import javafx.event.EventHandler;
@@ -12,8 +12,16 @@ import javafx.stage.StageStyle;
 import java.io.IOException;
 
 public class ScanetApplication extends Application {
-    private double xOffset;
-    private double yOffset;
+    private static ScanetApplication instance;
+    private static Stage primaryStage;
+    private static double xOffset;
+    private static double yOffset;
+    public static ScanetApplication getInstance() {
+        if (instance == null) {
+            instance = new ScanetApplication();
+        }
+        return instance;
+    }
     @Override
     public void start(Stage primaryStage) throws IOException {
         //проставляем у главного окна стиль UTILITY
@@ -25,6 +33,10 @@ public class ScanetApplication extends Application {
         primaryStage.show();
 
         //содержимое будет отражаться во втором, дочернем окне
+        secondaryStage();
+    }
+
+    public static void secondaryStage() throws IOException {
         Stage secondaryStage = new Stage();
         secondaryStage.initOwner(primaryStage);
         FXMLLoader fxmlLoader = new FXMLLoader(ScanetApplication.class.getResource("scanet.fxml"));
@@ -46,11 +58,9 @@ public class ScanetApplication extends Application {
         scene.setFill (Color.TRANSPARENT);
         secondaryStage.initStyle(StageStyle.TRANSPARENT);
         secondaryStage.setResizable(false);
-        secondaryStage.setTitle("Hello!");
         secondaryStage.setScene(scene);
         secondaryStage.show();
     }
-
     public static void main(String[] args) {
         launch();
     }
