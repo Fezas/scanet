@@ -94,6 +94,7 @@ public class ReportController implements Initializable {
         btnReload.setDisable(false);
         btnAdd.setDisable(true);
         logger.info("INFO: start scanner " + System.currentTimeMillis());
+        switchWork.setSelected(true);
     }
 
     private void endWork() {
@@ -106,6 +107,7 @@ public class ReportController implements Initializable {
         btnReload.setDisable(true);
         btnAdd.setDisable(false);
         logger.info("INFO: stop scanner " + System.currentTimeMillis());
+        switchWork.setSelected(false);
     }
 
     @FXML
