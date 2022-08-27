@@ -95,6 +95,7 @@ public class ReportController implements Initializable {
         btnAdd.setDisable(true);
         logger.info("INFO: start scanner " + System.currentTimeMillis());
         switchWork.setSelected(true);
+        tableStation.setDisable(true);
     }
 
     private void endWork() {
@@ -108,6 +109,7 @@ public class ReportController implements Initializable {
         btnAdd.setDisable(false);
         logger.info("INFO: stop scanner " + System.currentTimeMillis());
         switchWork.setSelected(false);
+        tableStation.setDisable(false);
     }
 
     @FXML
@@ -129,6 +131,8 @@ public class ReportController implements Initializable {
         initData();
         tableStation.refresh();
     }
+
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -156,7 +160,7 @@ public class ReportController implements Initializable {
                         editItem.setOnAction(new EventHandler<ActionEvent>() {
                             @Override
                             public void handle(ActionEvent event) {
-                                endWork();
+                                if(flagWork) endWork();
                                 selectStation = row.getItem();
                                 createScene(event, selectStation, "Редактирование соединения");
                                 selectStation = null;
@@ -171,7 +175,7 @@ public class ReportController implements Initializable {
                             if (option.get() == null) {
 
                             } else if (option.get() == ButtonType.OK) {
-                                endWork();
+                                if(flagWork) endWork();
                                 StationDAO stationDAO = StationDAO.getInstance();
                                 stationDAO.delete(row.getItem().getId());
                                 tableStation.getItems().remove(row.getItem());
@@ -225,7 +229,6 @@ public class ReportController implements Initializable {
                     0,
                     station.getTimeUpdate(),
                     station.isTrack(),
-                    station.isStatus(),
                     glyph,
                     ""
             ));

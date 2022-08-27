@@ -12,7 +12,7 @@ public class StationEntity {
     private Integer id;
     private String name, ip;
     private Integer ping, timeUpdate;
-    private boolean track, status;
+    private boolean track;
     private Glyph info;
     private String timeLastPing;
 
@@ -22,7 +22,7 @@ public class StationEntity {
 
     public StationEntity(Integer id, String name, String ip,
                          Integer ping, Integer timeUpdate,
-                         boolean track, boolean status,
+                         boolean track,
                          Glyph info, String timeLastPing) {
         this.id = id;
         this.name = name;
@@ -30,7 +30,6 @@ public class StationEntity {
         this.ping = ping;
         this.timeUpdate = timeUpdate;
         this.track = track;
-        this.status = status;
         this.info = info;
         this.timeLastPing = timeLastPing;
     }
@@ -44,7 +43,6 @@ public class StationEntity {
                 ", ping=" + ping +
                 ", timeUpdate=" + timeUpdate +
                 ", track=" + track +
-                ", status=" + status +
                 '}';
     }
 }

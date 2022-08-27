@@ -17,16 +17,15 @@ public class StationDAO {
             WHERE id = ?
             """;
     private static final String SAVE_SQL = """
-            INSERT INTO station (name, ip, time_update, track, status) 
-            VALUES (?, ?, ?, ?, ?);
+            INSERT INTO station (name, ip, time_update, track) 
+            VALUES (?, ?, ?, ?);
             """;
     private static final String FIND_ALL_SQL = """
             SELECT id,
                 name,
                 ip,
                 time_update,
-                track,
-                status,
+                track
             FROM station
             """;
     private static final String FIND_BY_ID_SQL = FIND_ALL_SQL + """
@@ -37,8 +36,7 @@ public class StationDAO {
             SET name = ?,
             ip = ?,
             time_update = ?,
-            track = ?,
-            status = ?
+            track = ?
             WHERE id = ?
             """;
     private StationDAO() {
@@ -65,7 +63,6 @@ public class StationDAO {
             preparedStatement.setString(2, station.getIp());
             preparedStatement.setInt(3, station.getTimeUpdate());
             preparedStatement.setBoolean(4, station.isTrack());
-            preparedStatement.setBoolean(5, station.isStatus());
             preparedStatement.executeUpdate();
             var generatedKeys = preparedStatement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -85,8 +82,7 @@ public class StationDAO {
             preparedStatement.setString(2, station.getIp());
             preparedStatement.setInt(3, station.getTimeUpdate());
             preparedStatement.setBoolean(4, station.isTrack());
-            preparedStatement.setBoolean(5, station.isStatus());
-            preparedStatement.setInt(6, station.getId());
+            preparedStatement.setInt(5, station.getId());
             preparedStatement.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -133,7 +129,6 @@ public class StationDAO {
                 0,
                 resultSet.getInt("time_update"),
                 resultSet.getBoolean("track"),
-                resultSet.getBoolean("status"),
                 fontAwesome.create("SAVE"),
                 ""
         );

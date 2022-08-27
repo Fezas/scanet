@@ -27,7 +27,7 @@ public class AddStationController implements Initializable {
     private GlyphFont fontAwesome = GlyphFontRegistry.font("FontAwesome");
     private static final Logger logger = LogManager.getLogger();
     @FXML    private Button btnClose, btnSave;
-    @FXML    private ToggleSwitch switchStatus, switchTrack;
+    @FXML    private ToggleSwitch switchTrack;
     @FXML    private TextField textfieldIP, textfieldName, textfieldTimeUpdate;
     public AddStationController(StationEntity currentStation) {
         this.currentStation = currentStation;
@@ -46,7 +46,6 @@ public class AddStationController implements Initializable {
         station.setIp(textfieldIP.getText());
         station.setTimeUpdate(Integer.parseInt(textfieldTimeUpdate.getText()));
         station.setTrack(switchTrack.isSelected());
-        station.setStatus(switchStatus.isSelected());
         station.setPing(0);
         station.setTimeLastPing("");
         if (currentStation != null) {//если это редактирование адреса
@@ -108,7 +107,6 @@ public class AddStationController implements Initializable {
             textfieldName.setText(currentStation.getName());
             textfieldIP.setText(currentStation.getIp());
             textfieldTimeUpdate.setText(currentStation.getTimeUpdate().toString());
-            if (currentStation.isStatus()) switchStatus.setSelected(true);
             if (currentStation.isTrack()) switchTrack.setSelected(true);
         }
         textfieldIP.setTextFormatter(new TextFormatter<>(ipAddressFilter));
