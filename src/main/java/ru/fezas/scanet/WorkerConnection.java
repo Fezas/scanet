@@ -20,7 +20,6 @@ import java.util.Date;
 @Setter
 public class WorkerConnection extends Thread {
     private GlyphFont fontAwesome = GlyphFontRegistry.font("FontAwesome");
-    private ScanetController scanetController = ScanetController.getInstance();
     private static final Logger logger = LogManager.getLogger();
     private boolean active = true;
     private Integer idWorker;
@@ -71,10 +70,10 @@ public class WorkerConnection extends Thread {
                                 tmp.setTimeLastPing(dateTimeLastPing);
                                 tmp.setInfo(fontAwesome.create("CIRCLE").color(Color.GREEN));
                                 ReportController.data.set(i, tmp);
-                                if (!scanetController.mapWork.containsKey(idWorker) ) {
-                                    scanetController.mapWork.put(idWorker, ReportController.data.get(i));
-                                    if (scanetController.mapErr.containsKey(idWorker)) scanetController.mapErr.remove(idWorker);
-                                }
+                                //if (!scanetController.mapWork.containsKey(idWorker) ) {
+                                //    scanetController.mapWork.put(idWorker, ReportController.data.get(i));
+                                //    if (scanetController.mapErr.containsKey(idWorker)) scanetController.mapErr.remove(idWorker);
+                                //}
                             }
                         }
                     } else {
@@ -87,15 +86,14 @@ public class WorkerConnection extends Thread {
                                 tmp.setTimeLastPing(dateTimeLastPing);
                                 tmp.setInfo(fontAwesome.create("TIMES").color(Color.RED));
                                 ReportController.data.set(i, tmp);
-                                if (!scanetController.mapErr.containsKey(idWorker) ) {
-                                    scanetController.mapErr.put(idWorker, ReportController.data.get(i));
-                                    if (scanetController.mapWork.containsKey(idWorker)) scanetController.mapErr.remove(idWorker);
-                                }
+                                //if (!scanetController.mapErr.containsKey(idWorker) ) {
+                                //    scanetController.mapErr.put(idWorker, ReportController.data.get(i));
+                                //    if (scanetController.mapWork.containsKey(idWorker)) scanetController.mapErr.remove(idWorker);
+                                //}
 
                             }
                         }
                     }
-                    scanetController.countWorkAndErr();
                     sleep(timeUpdate * 1000);
                 }
             }

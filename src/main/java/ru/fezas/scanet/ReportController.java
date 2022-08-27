@@ -1,5 +1,6 @@
 package ru.fezas.scanet;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,7 +23,6 @@ import org.controlsfx.glyphfont.Glyph;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -34,7 +34,6 @@ public class ReportController implements Initializable {
     private static ReportController instance;
     private StationEntity selectStation;
     private static final Logger logger = LogManager.getLogger();
-    private ScanetController scanetController = ScanetController.getInstance();
     public static boolean flagWork = false;
     private static ArrayList<WorkerConnection> workerList;
 
@@ -79,51 +78,48 @@ public class ReportController implements Initializable {
 
     @FXML
     void reload(ActionEvent event) {
-        switchWork.setSelected(false);
-        switchWork.setSelected(true);
+        endWork();
+        startWork();
+    }
+
+    private void startWork() {
+        //запускаем соединения
+        initWorkerList();
+        for (WorkerConnection worker : workerList) {
+            worker.setDaemon(true);
+            worker.start();
+        }
+        //помечаем что запуск состоялся
+        flagWork = true;
+        btnReload.setDisable(false);
+        btnAdd.setDisable(true);
+        logger.info("INFO: start scanner " + System.currentTimeMillis());
+    }
+
+    private void endWork() {
+        //прерываем соединения
+        for (WorkerConnection worker : workerList) {
+            worker.interrupt();
+        }
+        //помечаем что работа прекращена
+        flagWork = false;
+        btnReload.setDisable(true);
+        btnAdd.setDisable(false);
+        logger.info("INFO: stop scanner " + System.currentTimeMillis());
     }
 
     @FXML
     void actionToggleClick(MouseEvent event) {
         if (switchWork.selectedProperty().get()) {
-            scanetController.status = fontAwesome.create("PLAY").size(20).color(Color.GREEN);
-            //запускаем соединения
-            initWorkerList();
-            for (WorkerConnection worker : workerList) {
-                worker.setDaemon(true);
-                worker.start();
-            }
-            //помечаем что запуск состоялся
-            flagWork = true;
-            btnReload.setDisable(false);
-            logger.info("INFO: start scanner " + System.currentTimeMillis());
+            startWork();
         } else {
-            //прерываем соединения
-            for (WorkerConnection worker : workerList) {
-                //worker.setActive(false);
-                worker.interrupt();
-            }
-            //помечаем что работа прекращена
-            flagWork = false;
-            btnReload.setDisable(true);
-            scanetController.status  = fontAwesome.create("PAUSE").size(20);;
-            logger.info("INFO: stop scanner " + System.currentTimeMillis());
+            endWork();
         }
-        scanetController.mapWork.clear();
-        scanetController.mapErr.clear();
-
     }
 
     @FXML
     void close(ActionEvent event) {
-        try {
-            Stage stage = (Stage) btnClose.getScene().getWindow();
-            stage.hide();
-            ScanetApplication scanetApplication = ScanetApplication.getInstance();
-            scanetApplication.secondaryStage();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Platform.exit(); // закрыть все окна
     }
 
     @FXML
@@ -137,7 +133,7 @@ public class ReportController implements Initializable {
         if (!flagWork) initData();
         btnAdd.setGraphic(fontAwesome.create("PLUS"));
         btnReload.setGraphic(fontAwesome.create("REPEAT"));
-        btnClose.setGraphic(fontAwesome.create("COMPRESS"));
+        btnClose.setGraphic(fontAwesome.create("TIMES"));
         try {
             tableStation.setEditable(false);
             tableStation.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -158,6 +154,7 @@ public class ReportController implements Initializable {
                         editItem.setOnAction(new EventHandler<ActionEvent>() {
                             @Override
                             public void handle(ActionEvent event) {
+                                endWork();
                                 selectStation = row.getItem();
                                 createScene(event, selectStation, "Редактирование соединения");
                                 selectStation = null;
@@ -172,6 +169,7 @@ public class ReportController implements Initializable {
                             if (option.get() == null) {
 
                             } else if (option.get() == ButtonType.OK) {
+                                endWork();
                                 StationDAO stationDAO = StationDAO.getInstance();
                                 stationDAO.delete(row.getItem().getId());
                                 tableStation.getItems().remove(row.getItem());
