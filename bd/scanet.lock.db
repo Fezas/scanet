@@ -1,0 +1,6 @@
+#FileLock
+#Sat Aug 27 23:20:43 SAKT 2022
+server=192.168.3.7\:62766
+hostName=host.docker.internal
+method=file
+id=182df3f429d085de9009a3b4ff233fe65deb0caadb2
