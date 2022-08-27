@@ -121,7 +121,7 @@ public class ReportController implements Initializable {
 
     @FXML
     void close(ActionEvent event) {
-        Platform.exit(); // закрыть все окна
+        System.exit(0);
     }
 
     @FXML
