@@ -11,24 +11,32 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.controlsfx.control.ToggleSwitch;
+import org.controlsfx.glyphfont.Glyph;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class ReportController implements Initializable {
     private GlyphFont fontAwesome = GlyphFontRegistry.font("FontAwesome");
-    private static ObservableList<StationEntity> usersData = FXCollections.observableArrayList();
+    public static ObservableList<StationEntity> data = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
     private static ReportController instance;
     private StationEntity selectStation;
     private static final Logger logger = LogManager.getLogger();
+    private ScanetController scanetController = ScanetController.getInstance();
+    public static boolean flagWork = false;
+    private static ArrayList<WorkerConnection> workerList;
 
     public static ReportController getInstance() {
         if (instance == null) {
@@ -38,11 +46,11 @@ public class ReportController implements Initializable {
     }
 
     @FXML    private TableView<StationEntity> tableStation = new TableView<>();
-    @FXML    private Button btnAdd, btnReload, btnClose, btnFix;
-
-    @FXML    private TableColumn<StationEntity, Integer> columnTimeUpdate, columnPing;
+    @FXML    private Button btnAdd, btnReload, btnClose;
+    @FXML    private ToggleSwitch switchWork;
+    @FXML    private TableColumn<StationEntity, Integer> columnPing;
     @FXML    private TableColumn<StationEntity, String> columnName, columnIP, columnTrack;
-    @FXML    private TableColumn<StationEntity, String> columnInfo;
+    @FXML    private TableColumn<StationEntity, String> columnInfo, columnTimeUpdate;
 
     private void createScene(ActionEvent event, StationEntity station, String title) {
         try {
@@ -63,6 +71,7 @@ public class ReportController implements Initializable {
             logger.error("Error", e);
         }
     }
+
     @FXML
     void add(ActionEvent event) {
         createScene(event, null, "Добавить соединение");
@@ -70,20 +79,47 @@ public class ReportController implements Initializable {
 
     @FXML
     void reload(ActionEvent event) {
-
+        switchWork.setSelected(false);
+        switchWork.setSelected(true);
     }
 
     @FXML
-    void fix(ActionEvent event) {
+    void actionToggleClick(MouseEvent event) {
+        if (switchWork.selectedProperty().get()) {
+            scanetController.status = fontAwesome.create("PLAY").size(20).color(Color.GREEN);
+            //запускаем соединения
+            initWorkerList();
+            for (WorkerConnection worker : workerList) {
+                worker.setDaemon(true);
+                worker.start();
+            }
+            //помечаем что запуск состоялся
+            flagWork = true;
+            btnReload.setDisable(false);
+            logger.info("INFO: start scanner " + System.currentTimeMillis());
+        } else {
+            //прерываем соединения
+            for (WorkerConnection worker : workerList) {
+                //worker.setActive(false);
+                worker.interrupt();
+            }
+            //помечаем что работа прекращена
+            flagWork = false;
+            btnReload.setDisable(true);
+            scanetController.status  = fontAwesome.create("PAUSE").size(20);;
+            logger.info("INFO: stop scanner " + System.currentTimeMillis());
+        }
+        scanetController.mapWork.clear();
+        scanetController.mapErr.clear();
 
     }
 
     @FXML
     void close(ActionEvent event) {
-        Stage stage = (Stage) btnClose.getScene().getWindow();
-        stage.close();
-        ScanetApplication scanetApplication = ScanetApplication.getInstance();
         try {
+            Stage stage = (Stage) btnClose.getScene().getWindow();
+            stage.hide();
+            ScanetApplication scanetApplication = ScanetApplication.getInstance();
             scanetApplication.secondaryStage();
         } catch (IOException e) {
             e.printStackTrace();
@@ -95,13 +131,14 @@ public class ReportController implements Initializable {
         initData();
         tableStation.refresh();
     }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        btnAdd.setGraphic(fontAwesome.create("LAPTOP"));
+        if (!flagWork) initData();
+        btnAdd.setGraphic(fontAwesome.create("PLUS"));
         btnReload.setGraphic(fontAwesome.create("REPEAT"));
-        btnFix.setGraphic(fontAwesome.create("UNLOCK"));
+        btnClose.setGraphic(fontAwesome.create("COMPRESS"));
         try {
-            initData();
             tableStation.setEditable(false);
             tableStation.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
             tableStation.setRowFactory(
@@ -138,8 +175,7 @@ public class ReportController implements Initializable {
                                 StationDAO stationDAO = StationDAO.getInstance();
                                 stationDAO.delete(row.getItem().getId());
                                 tableStation.getItems().remove(row.getItem());
-                                initData();
-                                tableStation.refresh();
+                                refreshTable();
                             } else if (option.get() == ButtonType.CANCEL) {
 
                             }
@@ -157,30 +193,60 @@ public class ReportController implements Initializable {
             columnName.setCellValueFactory(new PropertyValueFactory<StationEntity, String>("name"));
             columnIP.setCellValueFactory(new PropertyValueFactory<StationEntity, String>("ip"));
             columnPing.setCellValueFactory(new PropertyValueFactory<StationEntity, Integer>("ping"));
-            columnTimeUpdate.setCellValueFactory(new PropertyValueFactory<StationEntity, Integer>("timeUpdate"));
+            columnTimeUpdate.setCellValueFactory(new PropertyValueFactory<StationEntity, String>("timeLastPing"));
             columnInfo.setCellValueFactory(new PropertyValueFactory<StationEntity, String>("info"));
+
             // заполняем таблицу данными
-            tableStation.setItems(usersData);
+            tableStation.setItems(data);
+            //Элементы управления
+            switchWork.setSelected(flagWork);
         } catch (Exception throwables) {
             throwables.printStackTrace();
         }
     }
-    private void initData() {
-        String info = "";
-        usersData.clear();
+
+    public void initData() {
+        data.clear();
+        Glyph glyph = null;
         var stations = StationDAO.getInstance().findAll();
         for (StationEntity station : stations) {
-            //if (station.isTrack() == false) info
-            usersData.add(new StationEntity(
+            if (station.isTrack() == false) {
+                glyph = fontAwesome.create("STOP");
+                glyph.color(Color.GRAY);
+            }
+            else {
+                glyph = fontAwesome.create("PAUSE");
+                glyph.color(Color.GRAY);
+            }
+            data.add(new StationEntity(
                     station.getId(),
                     station.getName(),
                     station.getIp(),
-                    station.getPing(),
+                    0,
                     station.getTimeUpdate(),
                     station.isTrack(),
                     station.isStatus(),
+                    glyph,
                     ""
             ));
+        }
+    }
+
+    public void initWorkerList() {
+        //создаем список только тех соединений которые будем отслеживать
+        workerList = new ArrayList<>();
+        for (StationEntity item : data) {
+            if (item.isTrack()) {
+                WorkerConnection workerConnection = new WorkerConnection(
+                        true,
+                        item.getId(),
+                        item.getName(),
+                        item.getIp(),
+                        0,
+                        item.getTimeUpdate()
+                );
+                workerList.add(workerConnection);
+            }
         }
     }
 }

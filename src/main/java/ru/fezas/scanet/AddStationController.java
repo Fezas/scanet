@@ -8,14 +8,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.control.TextFormatter.Change;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
-import javafx.scene.control.TextFormatter;
-import javafx.scene.control.TextFormatter.Change;
-import ru.fezas.scanet.StationDAO;
-import ru.fezas.scanet.StationEntity;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 public class AddStationController implements Initializable {
     private StationEntity currentStation;
     private GlyphFont fontAwesome = GlyphFontRegistry.font("FontAwesome");
+    private static final Logger logger = LogManager.getLogger();
     @FXML    private Button btnClose, btnSave;
     @FXML    private ToggleSwitch switchStatus, switchTrack;
     @FXML    private TextField textfieldIP, textfieldName, textfieldTimeUpdate;
@@ -47,6 +48,7 @@ public class AddStationController implements Initializable {
         station.setTrack(switchTrack.isSelected());
         station.setStatus(switchStatus.isSelected());
         station.setPing(0);
+        station.setTimeLastPing("");
         if (currentStation != null) {//если это редактирование адреса
             station.setId(currentStation.getId());
             stationDAO.update(station);
@@ -55,6 +57,7 @@ public class AddStationController implements Initializable {
         }
         ReportController reportController = ReportController.getInstance();
         reportController.refreshTable();
+        logger.info("INFO: save connection " + station.toString());
         Stage stage = (Stage) btnSave.getScene().getWindow();
         stage.close();
     }

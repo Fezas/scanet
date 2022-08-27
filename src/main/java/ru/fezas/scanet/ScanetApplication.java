@@ -31,7 +31,6 @@ public class ScanetApplication extends Application {
         primaryStage.setOpacity(0);
         //показываем
         primaryStage.show();
-
         //содержимое будет отражаться во втором, дочернем окне
         secondaryStage();
     }
@@ -40,6 +39,8 @@ public class ScanetApplication extends Application {
         Stage secondaryStage = new Stage();
         secondaryStage.initOwner(primaryStage);
         FXMLLoader fxmlLoader = new FXMLLoader(ScanetApplication.class.getResource("scanet.fxml"));
+        ScanetController scanetController = ScanetController.getInstance();
+        fxmlLoader.setController(scanetController);
         Scene scene = new Scene(fxmlLoader.load());
         scene.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
@@ -58,6 +59,7 @@ public class ScanetApplication extends Application {
         scene.setFill (Color.TRANSPARENT);
         secondaryStage.initStyle(StageStyle.TRANSPARENT);
         secondaryStage.setResizable(false);
+
         secondaryStage.setScene(scene);
         secondaryStage.show();
     }

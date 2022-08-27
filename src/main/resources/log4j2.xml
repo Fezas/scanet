@@ -19,7 +19,7 @@
             <Policies>
                 <TimeBasedTriggeringPolicy interval = "1" />
                 <SizeBasedTriggeringPolicy
-                        size="50 MB" />
+                        size="10 MB" />
             </Policies>
             <Filters>
                 <Filter type="ThresholdFilter" level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
@@ -34,7 +34,7 @@
             <Policies>
                 <TimeBasedTriggeringPolicy interval = "1" />
                 <SizeBasedTriggeringPolicy
-                        size="50 MB" />
+                        size="10 MB" />
             </Policies>
             <Filters>
                 <RegexFilter regex=".*LOGIN.*" onMatch="ACCEPT" onMismatch="DENY"/>

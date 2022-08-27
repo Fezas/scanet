@@ -16,7 +16,7 @@ public final class ConnectionManager {
     private static final String USER_KEY = "db.login";
     private static final String URL_KEY = "db.url";
     private static final String POOL_SIZE_KEY = "db.pool.size";
-    private static final Integer DEFAULT_POOL_SIZE = 10;
+    private static final Integer DEFAULT_POOL_SIZE = 5;
     private static BlockingQueue<Connection> pool;
     private static List<Connection> sourceConnections;
     private static final Logger logger = LogManager.getLogger();

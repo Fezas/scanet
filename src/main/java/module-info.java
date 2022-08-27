@@ -7,6 +7,7 @@ module ru.fezas.scanet {
     requires lombok;
     requires org.apache.logging.log4j;
     requires java.sql;
+    requires java.desktop;
 
     opens ru.fezas.scanet to javafx.fxml;
 

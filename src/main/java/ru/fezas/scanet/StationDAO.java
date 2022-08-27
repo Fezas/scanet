@@ -1,5 +1,8 @@
 package ru.fezas.scanet;
 
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -14,14 +17,13 @@ public class StationDAO {
             WHERE id = ?
             """;
     private static final String SAVE_SQL = """
-            INSERT INTO station (name, ip, ping, time_update, track, status) 
-            VALUES (?, ?, ?, ?, ?, ?);
+            INSERT INTO station (name, ip, time_update, track, status) 
+            VALUES (?, ?, ?, ?, ?);
             """;
     private static final String FIND_ALL_SQL = """
             SELECT id,
                 name,
                 ip,
-                ping,
                 time_update,
                 track,
                 status,
@@ -34,7 +36,6 @@ public class StationDAO {
             UPDATE station
             SET name = ?,
             ip = ?,
-            ping = ?,
             time_update = ?,
             track = ?,
             status = ?
@@ -62,10 +63,9 @@ public class StationDAO {
              var preparedStatement = connection.prepareStatement(SAVE_SQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, station.getName());
             preparedStatement.setString(2, station.getIp());
-            preparedStatement.setInt(3, station.getPing());
-            preparedStatement.setInt(4, station.getTimeUpdate());
-            preparedStatement.setBoolean(5, station.isTrack());
-            preparedStatement.setBoolean(6, station.isStatus());
+            preparedStatement.setInt(3, station.getTimeUpdate());
+            preparedStatement.setBoolean(4, station.isTrack());
+            preparedStatement.setBoolean(5, station.isStatus());
             preparedStatement.executeUpdate();
             var generatedKeys = preparedStatement.getGeneratedKeys();
             if (generatedKeys.next()) {
@@ -83,11 +83,10 @@ public class StationDAO {
              var preparedStatement = connection.prepareStatement(UPDATE_SQL)) {
             preparedStatement.setString(1, station.getName());
             preparedStatement.setString(2, station.getIp());
-            preparedStatement.setInt(3, station.getPing());
-            preparedStatement.setInt(4, station.getTimeUpdate());
-            preparedStatement.setBoolean(5, station.isTrack());
-            preparedStatement.setBoolean(6, station.isStatus());
-            preparedStatement.setInt(7, station.getId());
+            preparedStatement.setInt(3, station.getTimeUpdate());
+            preparedStatement.setBoolean(4, station.isTrack());
+            preparedStatement.setBoolean(5, station.isStatus());
+            preparedStatement.setInt(6, station.getId());
             preparedStatement.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -126,14 +125,16 @@ public class StationDAO {
     }
 
     private StationEntity buildStation(ResultSet resultSet) throws SQLException {
+        GlyphFont fontAwesome = GlyphFontRegistry.font("FontAwesome");
         return new StationEntity(
                 resultSet.getInt("id"),
                 resultSet.getString("name"),
                 resultSet.getString("ip"),
-                resultSet.getInt("ping"),
+                0,
                 resultSet.getInt("time_update"),
                 resultSet.getBoolean("track"),
                 resultSet.getBoolean("status"),
+                fontAwesome.create("SAVE"),
                 ""
         );
     }

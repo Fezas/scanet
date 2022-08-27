@@ -4,21 +4,22 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import org.controlsfx.control.ToggleSwitch?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="443.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.fezas.scanet.ReportController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="287.0" prefWidth="443.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.fezas.scanet.ReportController">
    <children>
-      <TableView fx:id="tableStation" layoutX="3.0" layoutY="3.0" prefHeight="265.0" prefWidth="396.0">
+      <TableView fx:id="tableStation" layoutX="3.0" layoutY="3.0" prefHeight="281.0" prefWidth="397.0">
         <columns>
-            <TableColumn fx:id="columnInfo" prefWidth="25.0" />
-          <TableColumn fx:id="columnName" prefWidth="107.0" text="Название" />
-          <TableColumn fx:id="columnIP" prefWidth="125.0" text="IP станции" />
-            <TableColumn fx:id="columnPing" prefWidth="60.0" text="Ping, мс" />
-            <TableColumn fx:id="columnTimeUpdate" prefWidth="78.0" text="Время" />
+            <TableColumn fx:id="columnInfo" editable="false" prefWidth="25.0" resizable="false" />
+          <TableColumn fx:id="columnName" editable="false" prefWidth="99.0" resizable="false" text="Название" />
+          <TableColumn fx:id="columnIP" editable="false" prefWidth="96.0" resizable="false" text="IP станции" />
+            <TableColumn fx:id="columnPing" editable="false" prefWidth="52.0" resizable="false" text="Ping, мс" />
+            <TableColumn fx:id="columnTimeUpdate" editable="false" prefWidth="123.0" resizable="false" text="Время" />
         </columns>
       </TableView>
-      <Button fx:id="btnReload" layoutX="4.0" layoutY="272.0" mnemonicParsing="false" onAction="#reload" prefHeight="25.0" prefWidth="128.0" text="Обновить все" />
-      <Button fx:id="btnAdd" layoutX="138.0" layoutY="272.0" mnemonicParsing="false" onAction="#add" prefHeight="25.0" prefWidth="128.0" text="Добавить" />
-      <Button fx:id="btnClose" layoutX="272.0" layoutY="272.0" mnemonicParsing="false" onAction="#close" prefHeight="25.0" prefWidth="128.0" text="Выход" />
-      <Button fx:id="btnFix" layoutX="405.0" layoutY="3.0" mnemonicParsing="false" onAction="#fix" prefHeight="30.0" prefWidth="30.0" style="-fx-background-radius: 15;" />
+      <Button fx:id="btnReload" disable="true" layoutX="405.0" layoutY="39.0" mnemonicParsing="false" onAction="#reload" prefHeight="30.0" prefWidth="30.0" style="-fx-background-radius: 15;" />
+      <Button fx:id="btnAdd" layoutX="405.0" layoutY="78.0" mnemonicParsing="false" onAction="#add" prefHeight="30.0" prefWidth="30.0" style="-fx-background-radius: 15;" />
+      <Button fx:id="btnClose" layoutX="405.0" layoutY="117.0" mnemonicParsing="false" onAction="#close" prefHeight="30.0" prefWidth="30.0" style="-fx-background-radius: 15;" />
+      <ToggleSwitch fx:id="switchWork" layoutX="383.0" layoutY="8.0" onMouseClicked="#actionToggleClick" />
    </children>
 </AnchorPane>
