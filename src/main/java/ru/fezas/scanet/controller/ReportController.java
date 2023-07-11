@@ -1,6 +1,5 @@
-package ru.fezas.scanet;
+package ru.fezas.scanet.controller;
 
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,6 +21,10 @@ import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.glyphfont.Glyph;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import ru.fezas.scanet.DAO.StationDAO;
+import ru.fezas.scanet.WorkerConnection;
+import ru.fezas.scanet.entity.StationEntity;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -36,7 +39,6 @@ public class ReportController implements Initializable {
     private static final Logger logger = LogManager.getLogger();
     public static boolean flagWork = false;
     private static ArrayList<WorkerConnection> workerList;
-
     public static ReportController getInstance() {
         if (instance == null) {
             instance = new ReportController();
@@ -45,16 +47,16 @@ public class ReportController implements Initializable {
     }
 
     @FXML    private TableView<StationEntity> tableStation = new TableView<>();
-    @FXML    private Button btnAdd, btnReload, btnClose;
+    @FXML    private Button btnAdd, btnReload, btnSetting, btnExit;
     @FXML    private ToggleSwitch switchWork;
     @FXML    private TableColumn<StationEntity, Integer> columnPing;
     @FXML    private TableColumn<StationEntity, String> columnName, columnIP, columnTrack;
     @FXML    private TableColumn<StationEntity, String> columnInfo, columnTimeUpdate;
 
-    private void createScene(ActionEvent event, StationEntity station, String title) {
+    private void createScene(StationEntity station, String title) {
         try {
             AddStationController addStationController = new AddStationController(station);
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("add-station.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/add-station.fxml"));
             loader.setController(addStationController);
             Stage stage = new Stage();
             stage.setTitle(title);
@@ -73,13 +75,34 @@ public class ReportController implements Initializable {
 
     @FXML
     void add(ActionEvent event) {
-        createScene(event, null, "Добавить соединение");
+        createScene(null, "Добавить соединение");
     }
 
     @FXML
-    void reload(ActionEvent event) {
-        endWork();
-        startWork();
+    void setting(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/setting.fxml"));
+            Stage stage = new Stage();
+            stage.setTitle("Настройки");
+            stage.setScene(new Scene(loader.load()));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            //stage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/telegra.png"))));
+            stage.setResizable(false);
+            stage.showAndWait();
+        } catch (NullPointerException e) {
+            logger.error("Error", e);
+            System.exit(-1);
+        } catch (Exception e) {
+            logger.error("Error", e);
+        }
+    }
+
+    @FXML
+    void reload() {
+        if (flagWork) {
+            endWork();
+            startWork();
+        }
     }
 
     private void startWork() {
@@ -95,7 +118,7 @@ public class ReportController implements Initializable {
         btnAdd.setDisable(true);
         logger.info("INFO: start scanner " + System.currentTimeMillis());
         switchWork.setSelected(true);
-        tableStation.setDisable(true);
+        //tableStation.setDisable(true);
     }
 
     private void endWork() {
@@ -109,7 +132,7 @@ public class ReportController implements Initializable {
         btnAdd.setDisable(false);
         logger.info("INFO: stop scanner " + System.currentTimeMillis());
         switchWork.setSelected(false);
-        tableStation.setDisable(false);
+        //tableStation.setDisable(false);
     }
 
     @FXML
@@ -122,9 +145,11 @@ public class ReportController implements Initializable {
     }
 
     @FXML
-    void close(ActionEvent event) {
+    void exit(ActionEvent event) {
         System.exit(0);
     }
+
+
 
     @FXML
     public void refreshTable() {
@@ -133,13 +158,13 @@ public class ReportController implements Initializable {
     }
 
 
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         if (!flagWork) initData();
-        btnAdd.setGraphic(fontAwesome.create("PLUS"));
-        btnReload.setGraphic(fontAwesome.create("REPEAT"));
-        btnClose.setGraphic(fontAwesome.create("TIMES"));
+        btnAdd.setGraphic(new FontIcon("anto-plus:18"));
+        btnReload.setGraphic(new FontIcon("anto-reload:18"));
+        btnExit.setGraphic(new FontIcon("anto-logout:18"));
+        btnSetting.setGraphic(new FontIcon("anto-setting:18"));
         try {
             tableStation.setEditable(false);
             tableStation.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -154,7 +179,6 @@ public class ReportController implements Initializable {
                         });
                         //контексное меню
                         final ContextMenu rowMenu = new ContextMenu();
-
                         MenuItem editItem = new MenuItem("Редактировать");
                         MenuItem removeItem = new MenuItem("Удалить");
                         editItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -162,7 +186,7 @@ public class ReportController implements Initializable {
                             public void handle(ActionEvent event) {
                                 if(flagWork) endWork();
                                 selectStation = row.getItem();
-                                createScene(event, selectStation, "Редактирование соединения");
+                                createScene(selectStation, "Редактирование соединения");
                                 selectStation = null;
                             }
                         });
@@ -185,7 +209,7 @@ public class ReportController implements Initializable {
                             }
                         });
                         rowMenu.getItems().addAll(editItem, removeItem);
-                        // only display context menu for non-empty rows:
+                        // показывать меню только для строк с сущностями:
                         row.contextMenuProperty().bind(
                                 Bindings.when(row.emptyProperty())
                                         .then((ContextMenu) null)
@@ -211,16 +235,16 @@ public class ReportController implements Initializable {
 
     public void initData() {
         data.clear();
-        Glyph glyph = null;
+        FontIcon icon = null;
         var stations = StationDAO.getInstance().findAll();
         for (StationEntity station : stations) {
-            if (station.isTrack() == false) {
-                glyph = fontAwesome.create("STOP");
-                glyph.color(Color.GRAY);
+            if (!station.isTrack()) {
+                icon = new FontIcon("antf-close-square:16");
+                icon.setIconColor(Color.GRAY);
             }
             else {
-                glyph = fontAwesome.create("PAUSE");
-                glyph.color(Color.GRAY);
+                icon = new FontIcon("anto-pause-circle:16");
+                icon.setIconColor(Color.GRAY);
             }
             data.add(new StationEntity(
                     station.getId(),
@@ -229,7 +253,7 @@ public class ReportController implements Initializable {
                     0,
                     station.getTimeUpdate(),
                     station.isTrack(),
-                    glyph,
+                    icon,
                     ""
             ));
         }

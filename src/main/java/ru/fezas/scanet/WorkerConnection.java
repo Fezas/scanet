@@ -8,6 +8,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.kordamp.ikonli.javafx.FontIcon;
+import ru.fezas.scanet.controller.ReportController;
+import ru.fezas.scanet.entity.StationEntity;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -68,7 +71,9 @@ public class WorkerConnection extends Thread {
                                 StationEntity tmp = ReportController.data.get(i);
                                 tmp.setPing(ping);
                                 tmp.setTimeLastPing(dateTimeLastPing);
-                                tmp.setInfo(fontAwesome.create("CIRCLE").color(Color.GREEN));
+                                FontIcon icon = new FontIcon("antf-play-circle:16");
+                                icon.setIconColor(Color.GREEN);
+                                tmp.setInfo(icon);
                                 ReportController.data.set(i, tmp);
                                 //if (!scanetController.mapWork.containsKey(idWorker) ) {
                                 //    scanetController.mapWork.put(idWorker, ReportController.data.get(i));
@@ -84,7 +89,9 @@ public class WorkerConnection extends Thread {
                                 StationEntity tmp = ReportController.data.get(i);
                                 tmp.setPing(ping);
                                 tmp.setTimeLastPing(dateTimeLastPing);
-                                tmp.setInfo(fontAwesome.create("TIMES").color(Color.RED));
+                                FontIcon icon = new FontIcon("antf-play-circle:16");
+                                icon.setIconColor(Color.RED);
+                                tmp.setInfo(icon);
                                 ReportController.data.set(i, tmp);
                                 //if (!scanetController.mapErr.containsKey(idWorker) ) {
                                 //    scanetController.mapErr.put(idWorker, ReportController.data.get(i));

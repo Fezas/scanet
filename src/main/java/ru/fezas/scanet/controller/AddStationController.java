@@ -1,4 +1,4 @@
-package ru.fezas.scanet;
+package ru.fezas.scanet.controller;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
@@ -16,6 +16,8 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.ToggleSwitch;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import ru.fezas.scanet.DAO.StationDAO;
+import ru.fezas.scanet.entity.StationEntity;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -32,6 +34,7 @@ public class AddStationController implements Initializable {
     public AddStationController(StationEntity currentStation) {
         this.currentStation = currentStation;
     }
+
     @FXML
     void close(ActionEvent event) {
         Stage stage = (Stage) btnClose.getScene().getWindow();
@@ -56,6 +59,7 @@ public class AddStationController implements Initializable {
         }
         ReportController reportController = ReportController.getInstance();
         reportController.refreshTable();
+        reportController.reload();
         logger.info("INFO: save connection " + station.toString());
         Stage stage = (Stage) btnSave.getScene().getWindow();
         stage.close();
@@ -83,6 +87,7 @@ public class AddStationController implements Initializable {
             }
         });
     }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         //валидация поля на превышение и первый пробел

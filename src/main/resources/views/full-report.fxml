@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import org.controlsfx.control.ToggleSwitch?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="287.0" prefWidth="443.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.fezas.scanet.ReportController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="287.0" prefWidth="443.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.fezas.scanet.controller.ReportController">
    <children>
       <TableView fx:id="tableStation" layoutX="3.0" layoutY="3.0" prefHeight="281.0" prefWidth="397.0">
         <columns>
@@ -23,10 +23,16 @@
             <Insets bottom="2.0" />
          </padding></Button>
       <Button fx:id="btnAdd" layoutX="405.0" layoutY="78.0" mnemonicParsing="false" onAction="#add" prefHeight="32.0" prefWidth="32.0" style="-fx-background-radius: 15;" />
-      <Button fx:id="btnClose" layoutX="405.0" layoutY="117.0" mnemonicParsing="false" onAction="#close" prefHeight="32.0" prefWidth="32.0" style="-fx-background-radius: 15;">
+      <ToggleSwitch fx:id="switchWork" layoutX="383.0" layoutY="8.0" onMouseClicked="#actionToggleClick" />
+      <Button fx:id="btnSetting" layoutX="405.0" layoutY="118.0" mnemonicParsing="false" onAction="#setting" prefHeight="32.0" prefWidth="32.0" style="-fx-background-radius: 15;">
          <padding>
             <Insets bottom="2.0" />
-         </padding></Button>
-      <ToggleSwitch fx:id="switchWork" layoutX="383.0" layoutY="8.0" onMouseClicked="#actionToggleClick" />
+         </padding>
+      </Button>
+      <Button fx:id="btnExit" layoutX="405.0" layoutY="241.0" mnemonicParsing="false" onAction="#exit" prefHeight="32.0" prefWidth="32.0" style="-fx-background-radius: 15;">
+         <padding>
+            <Insets bottom="2.0" />
+         </padding>
+      </Button>
    </children>
 </AnchorPane>

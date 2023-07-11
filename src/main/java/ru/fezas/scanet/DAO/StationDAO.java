@@ -1,7 +1,10 @@
-package ru.fezas.scanet;
+package ru.fezas.scanet.DAO;
 
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.kordamp.ikonli.javafx.FontIcon;
+import ru.fezas.scanet.ConnectionManager;
+import ru.fezas.scanet.entity.StationEntity;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -121,7 +124,6 @@ public class StationDAO {
     }
 
     private StationEntity buildStation(ResultSet resultSet) throws SQLException {
-        GlyphFont fontAwesome = GlyphFontRegistry.font("FontAwesome");
         return new StationEntity(
                 resultSet.getInt("id"),
                 resultSet.getString("name"),
@@ -129,7 +131,7 @@ public class StationDAO {
                 0,
                 resultSet.getInt("time_update"),
                 resultSet.getBoolean("track"),
-                fontAwesome.create("SAVE"),
+                new FontIcon("anto-save:16"),
                 ""
         );
     }

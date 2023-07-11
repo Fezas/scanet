@@ -15,9 +15,9 @@ public class ScanetApplication extends Application {
     private static double yOffset;
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ScanetApplication.class.getResource("full-report.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ScanetApplication.class.getResource("/views/full-report.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
-        scene.getStylesheets().add(getClass().getResource("styles.css").toString());
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toString());
         scene.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
