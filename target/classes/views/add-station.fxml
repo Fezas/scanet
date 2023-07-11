@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import org.controlsfx.control.ToggleSwitch?>
+
+<AnchorPane prefHeight="169.0" prefWidth="286.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label layoutX="38.0" layoutY="14.0" text="Имя соединения" />
+      <TextField fx:id="textfieldName" layoutX="141.0" layoutY="10.0" prefHeight="25.0" prefWidth="136.0" />
+      <Label layoutX="122.0" layoutY="46.0" text="IP" />
+      <TextField fx:id="textfieldIP" layoutX="141.0" layoutY="42.0" prefHeight="25.0" prefWidth="136.0" />
+      <Label layoutX="3.0" layoutY="78.0" text="Время обновления, сек" />
+      <TextField fx:id="textfieldTimeUpdate" layoutX="141.0" layoutY="74.0" prefHeight="25.0" prefWidth="136.0" />
+      <ToggleSwitch fx:id="switchTrack" layoutX="120.0" layoutY="107.0" />
+      <Label layoutX="40.0" layoutY="108.0" text="Отслеживаемый" />
+      <Button fx:id="btnClose" layoutX="172.0" layoutY="137.0" mnemonicParsing="false" onAction="#close" prefHeight="25.0" prefWidth="105.0" text="Выход" />
+      <Button fx:id="btnSave" layoutX="61.0" layoutY="137.0" mnemonicParsing="false" onAction="#save" prefHeight="25.0" prefWidth="105.0" text="Сохранить" />
+   </children>
+</AnchorPane>
