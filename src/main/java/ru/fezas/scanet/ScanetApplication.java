@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import ru.fezas.scanet.controller.ReportController;
 
 import java.io.IOException;
 
@@ -15,9 +16,12 @@ public class ScanetApplication extends Application {
     private static double yOffset;
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(ScanetApplication.class.getResource("/views/full-report.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ScanetApplication.class.getResource("/views/mini-report.fxml"));
+        ReportController reportController = ReportController.getInstance();
+        fxmlLoader.setController(reportController);
         Scene scene = new Scene(fxmlLoader.load());
         scene.getStylesheets().add(getClass().getResource("/css/styles.css").toString());
+
         scene.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
@@ -32,8 +36,9 @@ public class ScanetApplication extends Application {
                 stage.setY(event.getScreenY() + yOffset);
             }
         });
-        stage.initStyle(StageStyle.TRANSPARENT);
-        stage.setResizable(false);
+        //stage.initStyle(StageStyle.TRANSPARENT);
+        stage.setResizable(true);
+        stage.setMaxWidth(560);
         stage.setScene(scene);
         stage.show();
     }

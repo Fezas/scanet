@@ -1,7 +1,5 @@
 package ru.fezas.scanet.controller;
 
-import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -10,48 +8,54 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.ToggleSwitch;
-import org.controlsfx.glyphfont.Glyph;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.kordamp.ikonli.javafx.FontIcon;
+import ru.fezas.scanet.DAO.SettingsDAO;
 import ru.fezas.scanet.DAO.StationDAO;
 import ru.fezas.scanet.WorkerConnection;
+import ru.fezas.scanet.entity.SettingsEntity;
 import ru.fezas.scanet.entity.StationEntity;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class ReportController implements Initializable {
     private GlyphFont fontAwesome = GlyphFontRegistry.font("FontAwesome");
-    public static ObservableList<StationEntity> data = FXCollections.synchronizedObservableList(FXCollections.observableArrayList());
-    private static ReportController instance;
-    private StationEntity selectStation;
     private static final Logger logger = LogManager.getLogger();
-    public static boolean flagWork = false;
+    private static boolean flagWork = false;
     private static ArrayList<WorkerConnection> workerList;
-    public static ReportController getInstance() {
+    private static SettingsEntity settings;
+
+    private static ReportController instance;
+    public ReportController(){}
+    public static synchronized ReportController getInstance() {
         if (instance == null) {
             instance = new ReportController();
         }
         return instance;
     }
 
-    @FXML    private TableView<StationEntity> tableStation = new TableView<>();
-    @FXML    private Button btnAdd, btnReload, btnSetting, btnExit;
+    @FXML    private Button btnAdd, btnReload, btnSetting;
     @FXML    private ToggleSwitch switchWork;
-    @FXML    private TableColumn<StationEntity, Integer> columnPing;
-    @FXML    private TableColumn<StationEntity, String> columnName, columnIP, columnTrack;
-    @FXML    private TableColumn<StationEntity, String> columnInfo, columnTimeUpdate;
+
+    @FXML    private TreeTableView<StationEntity> tblReport;
+    @FXML    private TreeTableColumn<StationEntity, String> clmnName, clmnIP, clmnInfo, clmnTimeUpdate, clmnEdit, clmnDelete;
+    @FXML    private TreeTableColumn<StationEntity, Integer> clmnPing;
+
+
 
     private void createScene(StationEntity station, String title) {
         try {
@@ -74,12 +78,17 @@ public class ReportController implements Initializable {
     }
 
     @FXML
-    void add(ActionEvent event) {
-        createScene(null, "Добавить соединение");
+    void add() {
+        createScene(new StationEntity(), "Добавить соединение");
     }
 
     @FXML
-    void setting(ActionEvent event) {
+    void edit(StationEntity entity) {
+        createScene(entity, "Редактирование соединения");
+    }
+
+    @FXML
+    void setting() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/setting.fxml"));
             Stage stage = new Stage();
@@ -102,23 +111,25 @@ public class ReportController implements Initializable {
         if (flagWork) {
             endWork();
             startWork();
-        }
+        } else tblReport.refresh();
     }
 
+
     private void startWork() {
+        loadSettings();
         //запускаем соединения
         initWorkerList();
         for (WorkerConnection worker : workerList) {
             worker.setDaemon(true);
             worker.start();
         }
-        //помечаем что запуск состоялся
-        flagWork = true;
+        flagWork = true;//флаг что запуск состоялся
         btnReload.setDisable(false);
         btnAdd.setDisable(true);
+        btnSetting.setDisable(true);
+        //btnLog.setDisable(true);
         logger.info("INFO: start scanner " + System.currentTimeMillis());
         switchWork.setSelected(true);
-        //tableStation.setDisable(true);
     }
 
     private void endWork() {
@@ -130,9 +141,10 @@ public class ReportController implements Initializable {
         flagWork = false;
         btnReload.setDisable(true);
         btnAdd.setDisable(false);
+        btnSetting.setDisable(false);
+        //btnLog.setDisable(false);
         logger.info("INFO: stop scanner " + System.currentTimeMillis());
         switchWork.setSelected(false);
-        //tableStation.setDisable(false);
     }
 
     @FXML
@@ -150,130 +162,189 @@ public class ReportController implements Initializable {
     }
 
 
-
     @FXML
     public void refreshTable() {
-        initData();
-        tableStation.refresh();
+        if (flagWork) {
+            endWork();
+            createTreeItemTrackedNodes();
+            startWork();
+        } else createTreeItemTrackedNodes();
+    }
+
+    /**
+     * Функция создания всплывающих подсказок {@link Tooltip} на объекты типа {@link Button}
+     */
+    private void tooltipButton (String title, Button btn) {
+        Tooltip tooltip = new Tooltip();
+        tooltip.setText(title);
+        btn.setTooltip(tooltip);
     }
 
 
+
+    /**
+     * Функция формирования Action {@link Button}
+     */
+    private void addAction(StationEntity entity) {
+        entity.getBtnEdit().setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                edit(entity);
+            }
+        });
+        entity.getBtnDelete().setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                showAlertWithHeaderText(entity);
+            }
+        });
+    }
+
+    synchronized public void addTraces(ArrayList<StationEntity> traces, Integer idNode, String time, Boolean success, Integer ping) {
+        ObservableList<TreeItem<StationEntity>> items = tblReport.getRoot().getChildren();
+        for (TreeItem<StationEntity> treeItem : items) {
+            if (treeItem.getValue().getId().equals(idNode)) {
+                treeItem.getChildren().clear();
+                FontIcon icon;
+                if (success) {
+                    icon = new FontIcon("anto-check:20");
+                    if (ping <= settings.getGreat()) icon.setIconColor(Color.GREEN);
+                    if (ping > settings.getGreat() && ping <= settings.getGood()) icon.setIconColor(Color.BLUE);
+                    if (ping > settings.getGood() && ping <= settings.getBad()) icon.setIconColor(Color.BLUE);
+                    treeItem.getValue().setTimeLastPing(time);
+                    treeItem.getValue().setPing(ping);
+                } else {
+                    icon = new FontIcon("anto-close:20");
+                    icon.setIconColor(Color.RED);
+                }
+                treeItem.getValue().setInfo(icon);
+                if (traces.size() > 1) {
+                    for (StationEntity trace : traces) {
+                        TreeItem<StationEntity> traceItem = new TreeItem<StationEntity>(trace);
+                        treeItem.getChildren().add(traceItem);
+                    }
+                }
+                tblReport.refresh();
+            }
+        }
+    }
+    private void createTreeItemRoot() {
+        StationEntity rootEntity = new StationEntity();
+        rootEntity.setName("Структура");
+        TreeItem<StationEntity> root = new TreeItem<StationEntity>(rootEntity);
+        root.setExpanded(true);
+        tblReport.setRoot(root);
+    }
+
+    private void createTreeItemTrackedNodes() {
+        List<StationEntity> stations = StationDAO.getInstance().findAll();
+        tblReport.getRoot().getChildren().clear();
+        FontIcon icon;
+        for (StationEntity station : stations) {
+            station.setPing(0);
+            station.setTimeLastPing("");
+            tooltipButton("Корректировка узла \n\"" + station.getName() + "\"\n", station.getBtnEdit());
+            tooltipButton("Удаление узла \n\"" + station.getName() + "\"\n", station.getBtnDelete());
+            //иконки по умолчанию
+            if (!station.isTrack()) {
+                icon = new FontIcon("antf-close-square:16");
+                icon.setIconColor(Color.GRAY);
+            } else {
+                icon = new FontIcon("anto-pause-circle:16");
+                icon.setIconColor(Color.GRAY);
+            }
+            addAction(station);
+            station.setInfo(icon);
+            TreeItem<StationEntity> item = new TreeItem<StationEntity>(station);
+            tblReport.getRoot().getChildren().add(item);
+        }
+    }
+
+    private void loadSettings(){
+        settings  = SettingsDAO.getInstance().find();
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        if (!flagWork) initData();
         btnAdd.setGraphic(new FontIcon("anto-plus:18"));
         btnReload.setGraphic(new FontIcon("anto-reload:18"));
-        btnExit.setGraphic(new FontIcon("anto-logout:18"));
         btnSetting.setGraphic(new FontIcon("anto-setting:18"));
+        //btnLog.setGraphic(new FontIcon("anto-file-text:18"));
+        tooltipButton("Добавить абенента", btnAdd);
+        tooltipButton("Обновить данные", btnReload);
+        tooltipButton("Настройки", btnSetting);
+        //tooltipButton("Открыть логи", btnLog);
+        loadSettings();
+        createTreeItemRoot();
+        createTreeItemTrackedNodes();
         try {
-            tableStation.setEditable(false);
-            tableStation.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-            tableStation.setRowFactory(
-                    tableView -> {
-                        //событие по двойному клику строки
-                        final TableRow<StationEntity> row = new TableRow<>();
-                        row.setOnMouseClicked(event -> {
-                            if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
-                                StationEntity rowData = row.getItem();
-                            }
-                        });
-                        //контексное меню
-                        final ContextMenu rowMenu = new ContextMenu();
-                        MenuItem editItem = new MenuItem("Редактировать");
-                        MenuItem removeItem = new MenuItem("Удалить");
-                        editItem.setOnAction(new EventHandler<ActionEvent>() {
-                            @Override
-                            public void handle(ActionEvent event) {
-                                if(flagWork) endWork();
-                                selectStation = row.getItem();
-                                createScene(selectStation, "Редактирование соединения");
-                                selectStation = null;
-                            }
-                        });
-                        removeItem.setOnAction(event -> {
-                            Alert alertDelete = new Alert(Alert.AlertType.CONFIRMATION);
-                            alertDelete.setTitle("Внимание");
-                            alertDelete.setHeaderText("Удаление записи");
-                            alertDelete.setContentText("Удалить запись: " + row.getItem().getName() + "?");
-                            Optional<ButtonType> option = alertDelete.showAndWait();
-                            if (option.get() == null) {
-
-                            } else if (option.get() == ButtonType.OK) {
-                                if(flagWork) endWork();
-                                StationDAO stationDAO = StationDAO.getInstance();
-                                stationDAO.delete(row.getItem().getId());
-                                tableStation.getItems().remove(row.getItem());
-                                refreshTable();
-                            } else if (option.get() == ButtonType.CANCEL) {
-
-                            }
-                        });
-                        rowMenu.getItems().addAll(editItem, removeItem);
-                        // показывать меню только для строк с сущностями:
-                        row.contextMenuProperty().bind(
-                                Bindings.when(row.emptyProperty())
-                                        .then((ContextMenu) null)
-                                        .otherwise(rowMenu));
-                        return row;
+            tblReport.setRowFactory(
+                    new Callback<TreeTableView<StationEntity>, TreeTableRow<StationEntity>>() {
+                        @Override
+                        public TreeTableRow<StationEntity> call(TreeTableView<StationEntity> tableView) {
+                            final TreeTableRow<StationEntity> row = new TreeTableRow<StationEntity>();
+                            row.setOnMouseEntered(event -> {
+                                if (row.getTreeItem() != null) {
+                                    if (row.getTreeItem().getValue().isNode() && !flagWork) {
+                                        row.getTreeItem().getValue().getBtnEdit().setVisible(true);
+                                        row.getTreeItem().getValue().getBtnDelete().setVisible(true);
+                                    } else {
+                                        row.getTreeItem().getValue().getBtnEdit().setVisible(false);
+                                        row.getTreeItem().getValue().getBtnDelete().setVisible(false);
+                                    }
+                                }
+                            });
+                            row.setOnMouseExited(event -> {
+                                if (row.getTreeItem() != null) {
+                                    row.getTreeItem().getValue().getBtnEdit().setVisible(false);
+                                    row.getTreeItem().getValue().getBtnDelete().setVisible(false);
+                                }
+                            });
+                            return row;
+                        }
                     }
             );
             // устанавливаем тип и значение которое должно хранится в колонке
-            columnName.setCellValueFactory(new PropertyValueFactory<StationEntity, String>("name"));
-            columnIP.setCellValueFactory(new PropertyValueFactory<StationEntity, String>("ip"));
-            columnPing.setCellValueFactory(new PropertyValueFactory<StationEntity, Integer>("ping"));
-            columnTimeUpdate.setCellValueFactory(new PropertyValueFactory<StationEntity, String>("timeLastPing"));
-            columnInfo.setCellValueFactory(new PropertyValueFactory<StationEntity, String>("info"));
-
-            // заполняем таблицу данными
-            tableStation.setItems(data);
+            clmnName.setCellValueFactory(new TreeItemPropertyValueFactory<StationEntity, String>("name"));
+            clmnIP.setCellValueFactory(new TreeItemPropertyValueFactory<StationEntity, String>("ip"));
+            clmnPing.setCellValueFactory(new TreeItemPropertyValueFactory<StationEntity, Integer>("ping"));
+            clmnTimeUpdate.setCellValueFactory(new TreeItemPropertyValueFactory<StationEntity, String>("timeLastPing"));
+            clmnInfo.setCellValueFactory(new TreeItemPropertyValueFactory<StationEntity, String>("info"));
+            clmnEdit.setCellValueFactory(new TreeItemPropertyValueFactory<StationEntity, String>("btnEdit"));
+            clmnDelete.setCellValueFactory(new TreeItemPropertyValueFactory<StationEntity, String>("btnDelete"));
+            //createStructure();
             //Элементы управления
             switchWork.setSelected(flagWork);
         } catch (Exception throwables) {
             throwables.printStackTrace();
-        }
-    }
-
-    public void initData() {
-        data.clear();
-        FontIcon icon = null;
-        var stations = StationDAO.getInstance().findAll();
-        for (StationEntity station : stations) {
-            if (!station.isTrack()) {
-                icon = new FontIcon("antf-close-square:16");
-                icon.setIconColor(Color.GRAY);
-            }
-            else {
-                icon = new FontIcon("anto-pause-circle:16");
-                icon.setIconColor(Color.GRAY);
-            }
-            data.add(new StationEntity(
-                    station.getId(),
-                    station.getName(),
-                    station.getIp(),
-                    0,
-                    station.getTimeUpdate(),
-                    station.isTrack(),
-                    icon,
-                    ""
-            ));
+            logger.error("Exception throwables ", throwables);
         }
     }
 
     public void initWorkerList() {
         //создаем список только тех соединений которые будем отслеживать
         workerList = new ArrayList<>();
-        for (StationEntity item : data) {
+        for (StationEntity item : StationDAO.getInstance().findAll()) {
             if (item.isTrack()) {
                 WorkerConnection workerConnection = new WorkerConnection(
                         true,
                         item.getId(),
                         item.getName(),
                         item.getIp(),
-                        0,
                         item.getTimeUpdate()
                 );
                 workerList.add(workerConnection);
             }
+        }
+    }
+
+    private void showAlertWithHeaderText(StationEntity entity) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Удаление записи");
+        alert.setHeaderText("Внимание!");
+        alert.setContentText("Вы действительно хотите удалить запись \"" + entity.getName());
+        Optional<ButtonType> option = alert.showAndWait();
+        if (option.get() == ButtonType.OK) {
+            StationDAO.getInstance().delete(entity.getId());
+            refreshTable();
         }
     }
 }

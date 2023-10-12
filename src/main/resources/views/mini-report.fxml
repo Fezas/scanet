@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import org.controlsfx.control.ToggleSwitch?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="593.0" prefWidth="540.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Button fx:id="btnReload" disable="true" layoutX="504.0" layoutY="39.0" mnemonicParsing="false" onAction="#reload" prefHeight="32.0" prefWidth="32.0" style="-fx-background-radius: 15;" AnchorPane.rightAnchor="4.0">
+         <padding>
+            <Insets bottom="2.0" />
+         </padding></Button>
+      <Button fx:id="btnAdd" layoutX="504.0" layoutY="78.0" mnemonicParsing="false" onAction="#add" prefHeight="32.0" prefWidth="32.0" style="-fx-background-radius: 15;" AnchorPane.rightAnchor="4.0" />
+      <ToggleSwitch fx:id="switchWork" layoutX="482.0" layoutY="8.0" onMouseClicked="#actionToggleClick" AnchorPane.rightAnchor="6.0" />
+      <Button fx:id="btnSetting" layoutX="504.0" layoutY="118.0" mnemonicParsing="false" onAction="#setting" prefHeight="32.0" prefWidth="32.0" style="-fx-background-radius: 15;" AnchorPane.rightAnchor="4.0">
+         <padding>
+            <Insets bottom="2.0" />
+         </padding>
+      </Button>
+      <TreeTableView fx:id="tblReport" layoutX="2.0" layoutY="8.0" prefHeight="580.0" prefWidth="496.0" showRoot="false" AnchorPane.bottomAnchor="2.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="43.0" AnchorPane.topAnchor="8.0">
+        <columns>
+            <TreeTableColumn fx:id="clmnTree" prefWidth="20.0" style="-fx-alignment: CENTER;" />
+          <TreeTableColumn fx:id="clmnInfo" prefWidth="34.0" />
+          <TreeTableColumn fx:id="clmnName" prefWidth="120.0" text="Адресат" />
+            <TreeTableColumn fx:id="clmnIP" prefWidth="120.0" text="IP станции" />
+            <TreeTableColumn fx:id="clmnPing" prefWidth="42.0" text="Пинг" />
+            <TreeTableColumn fx:id="clmnTimeUpdate" prefWidth="90.0" text="Время" />
+            <TreeTableColumn fx:id="clmnEdit" prefWidth="34.0" />
+            <TreeTableColumn fx:id="clmnDelete" prefWidth="34.0" />
+        </columns>
+      </TreeTableView>
+   </children>
+</AnchorPane>

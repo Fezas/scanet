@@ -31,12 +31,13 @@ public class AddStationController implements Initializable {
     @FXML    private Button btnClose, btnSave;
     @FXML    private ToggleSwitch switchTrack;
     @FXML    private TextField textfieldIP, textfieldName, textfieldTimeUpdate;
+
     public AddStationController(StationEntity currentStation) {
         this.currentStation = currentStation;
     }
 
     @FXML
-    void close(ActionEvent event) {
+    void close() {
         Stage stage = (Stage) btnClose.getScene().getWindow();
         stage.close();
     }
@@ -51,7 +52,7 @@ public class AddStationController implements Initializable {
         station.setTrack(switchTrack.isSelected());
         station.setPing(0);
         station.setTimeLastPing("");
-        if (currentStation != null) {//если это редактирование адреса
+        if (currentStation.getId() != null) {//если это редактирование адреса
             station.setId(currentStation.getId());
             stationDAO.update(station);
         } else {
@@ -59,10 +60,9 @@ public class AddStationController implements Initializable {
         }
         ReportController reportController = ReportController.getInstance();
         reportController.refreshTable();
-        reportController.reload();
-        logger.info("INFO: save connection " + station.toString());
+        logger.info("INFO: save connection " + station);
         Stage stage = (Stage) btnSave.getScene().getWindow();
-        stage.close();
+        close();
     }
 
     private String makePartialIPRegex() {
@@ -71,6 +71,7 @@ public class AddStationController implements Initializable {
         String ipAddress = partialBlock+"?"+subsequentPartialBlock+"{0,3}";
         return "^"+ipAddress;
     }
+
     public void textFieldLenght(TextField textField, int limit) {
         Pattern pattern = Pattern.compile(".{0," + limit + "}");
         TextFormatter formatter = new TextFormatter((UnaryOperator<TextFormatter.Change>) change -> {
@@ -90,6 +91,19 @@ public class AddStationController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+        //валидация заполенения полей формы
+        btnSave.disableProperty().bind(
+                Bindings.isEmpty(textfieldName.textProperty())
+                        .or(Bindings.isEmpty(textfieldIP.textProperty()))
+                        .or(Bindings.isEmpty(textfieldTimeUpdate.textProperty()))
+        );
+        if (currentStation.getId() != null) {//если это редактирование адреса
+            textfieldName.setText(currentStation.getName());
+            textfieldIP.setText(currentStation.getIp());
+            textfieldTimeUpdate.setText(currentStation.getTimeUpdate().toString());
+            if (currentStation.isTrack()) switchTrack.setSelected(true);
+        }
         //валидация поля на превышение и первый пробел
         textFieldLenght(textfieldName, 18);
         //валидация поля ip
@@ -102,18 +116,6 @@ public class AddStationController implements Initializable {
                 return null;
             }
         };
-        //валидация заполенения полей формы
-        btnSave.disableProperty().bind(
-                Bindings.isEmpty(textfieldName.textProperty())
-                        .or(Bindings.isEmpty(textfieldIP.textProperty()))
-                        .or(Bindings.isEmpty(textfieldTimeUpdate.textProperty()))
-        );
-        if (currentStation != null) {//если это редактирование адреса
-            textfieldName.setText(currentStation.getName());
-            textfieldIP.setText(currentStation.getIp());
-            textfieldTimeUpdate.setText(currentStation.getTimeUpdate().toString());
-            if (currentStation.isTrack()) switchTrack.setSelected(true);
-        }
         textfieldIP.setTextFormatter(new TextFormatter<>(ipAddressFilter));
         btnSave.setGraphic(fontAwesome.create("SAVE"));
     }

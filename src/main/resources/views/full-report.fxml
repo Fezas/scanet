@@ -34,5 +34,10 @@
             <Insets bottom="2.0" />
          </padding>
       </Button>
+      <Button fx:id="btnLog" layoutX="405.0" layoutY="158.0" mnemonicParsing="false" onAction="#openLog" prefHeight="32.0" prefWidth="32.0" style="-fx-background-radius: 15;">
+         <padding>
+            <Insets bottom="2.0" />
+         </padding>
+      </Button>
    </children>
 </AnchorPane>

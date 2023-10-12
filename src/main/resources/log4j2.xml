@@ -3,7 +3,7 @@
   ~ Copyright (c) 2022. Stepantsov P.V.
   -->
 
-<Configuration status="debug" strict="true"
+<Configuration status="all" strict="true"
                name="XMLConfigTest" packages="org.apache.logging.log4j.test">
     <Filter type="ThresholdFilter" level="trace" />
     <Appenders>
@@ -19,35 +19,14 @@
             <Policies>
                 <TimeBasedTriggeringPolicy interval = "1" />
                 <SizeBasedTriggeringPolicy
-                        size="10 MB" />
+                        size="50 MB" />
             </Policies>
-            <Filters>
-                <Filter type="ThresholdFilter" level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
-            </Filters>
-        </RollingFile>
-        <RollingFile name="rollingInfo"
-                     fileName="logs/info.log"
-                     filePattern="logs/$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz">
-            <PatternLayout>
-                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
-            </PatternLayout>
-            <Policies>
-                <TimeBasedTriggeringPolicy interval = "1" />
-                <SizeBasedTriggeringPolicy
-                        size="10 MB" />
-            </Policies>
-            <Filters>
-                <RegexFilter regex=".*LOGIN.*" onMatch="ACCEPT" onMismatch="DENY"/>
-                <RegexFilter regex=".*OPERATION.*" onMatch="ACCEPT" onMismatch="DENY"/>
-                <RegexFilter regex=".*INFO.*" onMatch="ACCEPT" onMismatch="DENY"/>
-            </Filters>
         </RollingFile>
     </Appenders>
 
     <Loggers>
-        <Root level="INFO">
+        <Root level="all">
             <AppenderRef ref="STDOUT" />
-            <AppenderRef ref="rollingInfo" />
             <AppenderRef ref="rollingSystem" />
         </Root>
     </Loggers>

@@ -1,5 +1,7 @@
 package ru.fezas.scanet.DAO;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class StationDAO {
+    private static final Logger logger = LogManager.getLogger();
     private static final StationDAO INSTANCE = new StationDAO();
     private static final String DELETE_SQL = """
             DELETE FROM station
@@ -55,6 +58,7 @@ public class StationDAO {
             return preparedStatement.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
+            logger.error("ERROR: ", e);
         }
         return false;
     }
@@ -74,6 +78,7 @@ public class StationDAO {
             return station;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            logger.error("ERROR: ", throwables);
         }
         return null;
     }
@@ -89,6 +94,7 @@ public class StationDAO {
             preparedStatement.executeUpdate();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            logger.error("ERROR: ", throwables);
         }
     }
 
@@ -104,6 +110,7 @@ public class StationDAO {
             return Optional.ofNullable(station);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            logger.error("ERROR: ", throwables);
         }
         return null;
     }
@@ -119,20 +126,21 @@ public class StationDAO {
             return stations;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            logger.error("ERROR: ", throwables);
         }
         return null;
     }
 
     private StationEntity buildStation(ResultSet resultSet) throws SQLException {
-        return new StationEntity(
-                resultSet.getInt("id"),
-                resultSet.getString("name"),
-                resultSet.getString("ip"),
-                0,
-                resultSet.getInt("time_update"),
-                resultSet.getBoolean("track"),
-                new FontIcon("anto-save:16"),
-                ""
-        );
+        StationEntity entity = new StationEntity();
+        entity.setId(resultSet.getInt("id"));
+        entity.setName(resultSet.getString("name"));
+        entity.setIp(resultSet.getString("ip"));
+        entity.setPing(0);
+        entity.setInfo(new FontIcon());
+        entity.setTimeUpdate(resultSet.getInt("time_update"));
+        entity.setTrack(resultSet.getBoolean("track"));
+        entity.setNode(true);
+        return entity;
     }
 }

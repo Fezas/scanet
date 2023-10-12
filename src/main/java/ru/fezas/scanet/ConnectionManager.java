@@ -60,7 +60,7 @@ public final class ConnectionManager {
         try {
             Class.forName("org.h2.Driver");
         } catch (ClassNotFoundException e) {
-            logger.error("Error", e);
+            logger.error("ERROR: ", e);
             throw new RuntimeException(e);
         }
     }
